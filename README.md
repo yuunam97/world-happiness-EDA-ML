@@ -31,4 +31,5 @@ This analysis looked at the number of factors affecting the happiness score in t
 
 ### Credits
 1. [World Happiness Report](https://worldhappiness.report/data/) dataset of 2021, and 2023. 
-2. 
+2. [Grace Leeswadtrakul's EDA](https://graceleeswadtrakul.medium.com/exploratory-data-analysis-eda-project-world-happiness-report-de37eaef6951) on World Happiness Report  
+3. [Plotly guide for better visualization](https://www.kaggle.com/code/desalegngeb/plotly-guide-customize-for-better-visualizations)
