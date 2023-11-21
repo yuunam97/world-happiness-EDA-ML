@@ -70,13 +70,16 @@ df_countries <- data %>%
            country == "South Korea"|
            country == "South Africa")
 
-# 0.1 Setting the fonts for legends:
+# Setting the fonts for legends:
 t_legend <- list(family = "sans-serif",
                  size = 12)
 t_labels <- list(family = "sans-serif",
                  size = 15)
 
+#--------------------
 # 1. Happiness Score:
+#--------------------
+
 plot_ly(df_countries, x = ~year, y = ~happy_score, color = ~country,
         type = "scatter",
         mode = "lines+markers",
@@ -91,7 +94,10 @@ plot_ly(df_countries, x = ~year, y = ~happy_score, color = ~country,
                                    font = t_labels)),
          plot_bgcolor = "#f9f9f9")
 
+#------------------------------------
 # 2. GDP per Capita (Economy Growth):
+#------------------------------------
+
 plot_ly(df_countries, x = ~year, y = ~log_gdp_per_capita, color = ~country,
         type = "scatter",
         mode = "lines+markers",
@@ -106,7 +112,10 @@ plot_ly(df_countries, x = ~year, y = ~log_gdp_per_capita, color = ~country,
                                    font = t_labels)),
          plot_bgcolor = "#f9f9f9")
 
+#-------------------
 # 3. Social Support:
+#-------------------
+
 plot_ly(df_countries, x = ~year, y = ~social_support, color = ~country,
         type = "scatter",
         mode = "lines+markers",
@@ -121,7 +130,10 @@ plot_ly(df_countries, x = ~year, y = ~social_support, color = ~country,
                                    font = t_labels)),
          plot_bgcolor = "#f9f9f9")
 
+#----------------------------
 # 4. Healthy Life Expectancy:
+#----------------------------
+
 plot_ly(df_countries, x = ~year, y = ~healthy_life_expectancy, color = ~country,
         type = "scatter",
         mode = "lines+markers",
@@ -136,7 +148,10 @@ plot_ly(df_countries, x = ~year, y = ~healthy_life_expectancy, color = ~country,
                                    font = t_labels)),
          plot_bgcolor = "#f9f9f9")
 
+#---------------------------------
 # 5. Freedom to Make Life Choices:
+#---------------------------------
+
 plot_ly(df_countries, x = ~year, y = ~freedom_life_choices, color = ~country,
         type = "scatter",
         mode = "lines+markers",
@@ -151,7 +166,10 @@ plot_ly(df_countries, x = ~year, y = ~freedom_life_choices, color = ~country,
                                    font = t_labels)),
          plot_bgcolor = "#f9f9f9")
 
+#---------------
 # 6. Generosity:
+#---------------
+
 plot_ly(df_countries, x = ~year, y = ~generosity, color = ~country,
         type = "scatter",
         mode = "lines+markers",
@@ -166,7 +184,10 @@ plot_ly(df_countries, x = ~year, y = ~generosity, color = ~country,
                                    font = t_labels)),
          plot_bgcolor = "#f9f9f9")
 
+#-----------------------------
 # 7. Perception of Corruption:
+#-----------------------------
+
 plot_ly(df_countries, x = ~year, y = ~perception_corruption, color = ~country,
         type = "scatter",
         mode = "lines+markers",
@@ -181,7 +202,10 @@ plot_ly(df_countries, x = ~year, y = ~perception_corruption, color = ~country,
                                    font = t_labels)),
          plot_bgcolor = "#f9f9f9")
 
+#--------------------
 # 8. Positive Affect:
+#--------------------
+
 plot_ly(df_countries, x = ~year, y = ~positive_affect, color = ~country,
         type = "scatter",
         mode = "lines+markers",
@@ -196,7 +220,10 @@ plot_ly(df_countries, x = ~year, y = ~positive_affect, color = ~country,
                                    font = t_labels)),
          plot_bgcolor = "#f9f9f9")
 
+#--------------------
 # 9. Negative Affect:
+#--------------------
+
 plot_ly(df_countries, x = ~year, y = ~negative_affect, color = ~country,
         type = "scatter",
         mode = "lines+markers",

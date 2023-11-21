@@ -35,14 +35,9 @@ library(lubridate)
 library(janitor)
 library(dplyr)
 library(ggplot2)
-library(viridis)
-library(hrbrthemes)
-library(rio) # converting xls -> csv
-library(GGally) # correlation plot
-library(ggpmisc)
-library(ggpubr)
-library(ggcorrplot)
+library(ggcorrplot) # correlation plot
 library(plotly)
+library(modelr)
 
 #------------------------------------------------------------------------------#
 ### DATA VIEW && LOADING ###
@@ -90,231 +85,720 @@ View(data)
 ### Univariate Analysis ###
 #------------------------------------------------------------------------------#
 
-# 1. Countries with the highest Happy Score:
+#-----------------------------
+# Font settings for visuals:
+#-----------------------------
+
+t_title <- list(family = "sans-serif",
+                size = 20)
+t_labels <- list(family = "sans-serif",
+                 size = 15)
+t_legend <- list(family = "sans-serif",
+                 size = 12)
+
+#------------------------------------------------------
+# 1. Countries with the highest and Lowest Happy Score:
+#------------------------------------------------------
+
+# 1.1 Obtaining the dataframes:
 df_happiest <- data %>% 
   group_by(country) %>% 
   summarise(happy_score = mean(happy_score)) %>% 
   arrange(desc(happy_score)) %>% 
-  mutate(happiness_rank = as.integer(rank(-happy_score)))
+  mutate(happiness_rank = as.integer(rank(-happy_score))) %>% 
+  slice(1:10)
 
-df_happiest_graph <- df_happiest %>%
-  arrange(-happy_score) %>% 
-  slice(1:10) %>% 
-  ggplot(df_happiest_graph, mapping = aes(x=reorder(x = country, +happy_score),
-                                          y = happy_score)) + 
-  geom_col(fill = "#3db5ff") + coord_flip() +
-  labs(title = "Top 10 Happiest Countries", 
-       x = "Country", y = "Happiness Score")
-
-df_happiest_graph
-View(df_happiest)
-
-# 1.1 Top 10 Saddest country:
-
-df_saddest <- df_2023 %>% 
+df_saddest <- data %>% 
   group_by(country) %>%
   summarise(happy_score = mean(happy_score)) %>%
   arrange((happy_score)) %>% 
-  mutate(happiness_rank = as.integer(rank(-happy_score)))
+  mutate(happiness_rank = as.integer(rank(-happy_score))) %>% 
+  slice(1:10)
 
-df_saddest_graph <- df_saddest %>%
-  arrange(happy_score) %>% 
-  slice(1:10) %>% 
-  ggplot(df_saddest_graph, mapping = aes(x = reorder(x = country, -happy_score), 
-                                         y = happy_score)) + 
-  geom_col(fill = "#3db5ff") + coord_flip() +
-  labs(title = "Top 10 Saddest Countries", 
-       x = "Country", y = "Happiness Score")
+# Plotting the graph:
+plot_ly(df_happiest, x = ~happy_score, y = ~reorder(country, happy_score), 
+        type = 'bar', 
+        name = 'Happiness Score',
+        orientation = "h",
+        text = ~round(happy_score, 2), 
+        textposition = 'auto',
+        marker = list(color = '#ffa300',
+                      line = list(color = "darkred", width = 1))) %>%
+  layout(title = list(text = "<b>Top 10 Happiest Countries</b>",
+                      xanchor = "center", x = 0.5, y = 0.95), 
+         xaxis = list(title = list(text = "<b>Happiness Score</b>", 
+                                   font = t_labels), 
+                      showline = TRUE, 
+                      showticklabels = TRUE, 
+                      domain = c(0, 0.90),
+                      font = t_labels), 
+         yaxis = list(title = "", 
+                      showline = TRUE, 
+                      showticklabels = TRUE, 
+                      domain = c(0, 0.90)),
+         plot_bgcolor = "#f8f8ff") 
 
-df_saddest_graph
-View(df_saddest)
+plot_ly(df_saddest, x = ~happy_score, y = ~reorder(country, -happy_score), 
+        type = 'bar', 
+        name = 'Happiness Score',
+        orientation = "h",
+        text = ~round(happy_score, 2), 
+        textposition = 'auto',
+        marker = list(color = 'darkred',
+                      line = list(color = "#ffa300", width = 1))) %>%
+  layout(title = list(text = "<b>Most Saddest Countries</b>",
+                      xanchor = "center", x = 0.5, y = 0.95), 
+         xaxis = list(title = list(text = "<b>Happiness Score</b>", 
+                                   font = t_labels), 
+                      showline = TRUE, 
+                      showticklabels = TRUE, 
+                      domain = c(0, 0.90),
+                      font = t_labels), 
+         yaxis = list(title = "", 
+                      showline = TRUE, 
+                      showticklabels = TRUE, 
+                      domain = c(0, 0.90)),
+         plot_bgcolor = "#f8f8ff") 
 
-#---------------------------------------------
 
-# 2. Log GDP per capita per country:
-log_gdp_per_capita <- data %>% 
-  group_by(country) %>% 
-  summarise(log_gdp_per_capita = mean(log_gdp_per_capita)) %>% 
-  arrange(country)
+#------------------------------------------------------
+# 2. Countries with the highest Healthy Life Expectancy
+#------------------------------------------------------
 
-log_gdp_per_capita_graph <- log_gdp_per_capita %>%
-  arrange(-log_gdp_per_capita) %>% 
-  slice(1:10) %>% 
-  ggplot(log_gdp_per_capita_graph, mapping=aes(x = reorder(x = country, 
-                                                           +log_gdp_per_capita),
-                                               y = log_gdp_per_capita)) + 
-  geom_col(fill = "orange") + coord_flip() +
-  labs(title = "Top 10 Countries Log GDP per capita", 
-       x = "Country", y = "Log GDP per capita value") +
-  scale_fill_brewer(palette = "Spectral")
-
-log_gdp_per_capita_graph
-View(log_gdp_per_capita)
-
-#---------------------------------------------
-
-# 3. Social support per country:
-social_support <- data %>% 
-  group_by(country) %>% 
-  summarise(social_support = mean(social_support)) %>% 
-  arrange(country)
-
-social_support_graph <- social_support %>%
-  arrange(-social_support) %>% 
-  slice(1:10) %>% 
-  ggplot(social_support_graph, mapping = aes(x = reorder(x = country, 
-                                                         +social_support), 
-                                             y = social_support)) + 
-  geom_col(fill = "green") + coord_flip() +
-  labs(title = "Top 10 Countries Social Support", 
-       x = "Country", y = "Social Support value")
-
-social_support_graph
-View(social_support)
-
-#---------------------------------------------
-
-# 4. Healthy life expectancy per country:
-healthy_life_expectancy <- data %>% 
+# 2.1 Obtaining the dataframes:
+df_highest_hle <- data %>% 
   group_by(country) %>% 
   summarise(healthy_life_expectancy = mean(healthy_life_expectancy)) %>% 
-  arrange(country)
+  arrange(desc(healthy_life_expectancy)) %>% 
+  mutate(hle_rank = as.integer(rank(-healthy_life_expectancy))) %>% 
+  slice(1:10)
 
-healthy_life_expectancy_graph <- healthy_life_expectancy %>%
-  arrange(-healthy_life_expectancy) %>% 
-  slice(1:10) %>% 
-  ggplot(healthy_life_expectancy_graph, mapping = aes(x = reorder(x = country, +healthy_life_expectancy),
-                                                      y = healthy_life_expectancy)) + 
-  geom_col(fill = "red") + coord_flip() +
-  labs(title = "Top 10 Countries Healthy Life Expectancy", 
-       x = "Country", y = "Healthy Life Expectancy value")
+# Plotting the graph:
+plot_ly(df_highest_hle, x = ~healthy_life_expectancy, y = ~reorder(country, healthy_life_expectancy), 
+        type = 'bar', 
+        name = 'Healthy Life Expectancy',
+        orientation = "h",
+        text = ~round(healthy_life_expectancy, 2), 
+        textposition = 'auto',
+        marker = list(color = '#a6d75b',
+                      line = list(color = "#76c68f", width = 1))) %>%
+  layout(title = list(text = "<b>Top 10 Countries with Highest Healthy Life Expectancy</b>",
+                      xanchor = "center", x = 0.5, y = 0.95), 
+         xaxis = list(title = list(text = "<b>Healthy Life Expectancy</b>", 
+                                   font = t_labels), 
+                      showline = TRUE, 
+                      showticklabels = TRUE, 
+                      domain = c(0, 0.90),
+                      font = t_labels), 
+         yaxis = list(title = "", 
+                      showline = TRUE, 
+                      showticklabels = TRUE, 
+                      domain = c(0, 0.90)),
+         plot_bgcolor = "#f8f8ff")
 
-healthy_life_expectancy_graph
-View(healthy_life_expectancy)
 
 #---------------------------------------------
+# 3. Countries with the highest GDP per Capita
+#---------------------------------------------
 
-# 5. Freedom to make life choices per country:
-freedom_life_choices <- data %>% 
+# 3.1 Obtaining the dataframes:
+df_highest_gdp <- data %>% 
   group_by(country) %>% 
-  summarise(freedom_life_choices = mean(freedom_life_choices)) %>% 
-  arrange(country)
+  summarise(gdp_per_capita = mean(log_gdp_per_capita)) %>% 
+  arrange(desc(gdp_per_capita)) %>% 
+  mutate(gdp_rank = as.integer(rank(-gdp_per_capita))) %>% 
+  slice(1:10)
 
-freedom_life_choices_graph <- freedom_life_choices %>%
-  arrange(-freedom_life_choices) %>% 
-  slice(1:10) %>% 
-  ggplot(freedom_life_choices_graph, mapping = aes(x = reorder(x = country, +freedom_life_choices), y = freedom_life_choices)) + 
-  geom_col(fill = "purple") + coord_flip() +
-  labs(title = "Top 10 Countries Freedom to make life choices", 
-       x = "Country", y = "Freedom to make life choices value")
-
-freedom_life_choices_graph
-View(freedom_life_choices)
+# Plotting the graph:
+plot_ly(df_highest_gdp, x = ~gdp_per_capita, y = ~reorder(country, gdp_per_capita), 
+        type = 'bar', 
+        name = 'GDP per capita',
+        orientation = "h",
+        text = ~round(gdp_per_capita, 2), 
+        textposition = 'auto',
+        marker = list(color = '#22a7f0',
+                      line = list(color = "#115f9a", width = 1))) %>%
+  layout(title = list(text = "<b>Top 10 Countries with Highest GDP per capita</b>",
+                      xanchor = "center", x = 0.5, y = 0.95), 
+         xaxis = list(title = list(text = "<b>GDP per capita</b>", 
+                                   font = t_labels), 
+                      showline = TRUE, 
+                      showticklabels = TRUE, 
+                      domain = c(0, 0.90),
+                      font = t_labels), 
+         yaxis = list(title = "", 
+                      showline = TRUE, 
+                      showticklabels = TRUE, 
+                      domain = c(0, 0.90)),
+         plot_bgcolor = "#f8f8ff")
 
 
 #---------------------------------------------
+# 4. Countries with the highest Social Support
+#---------------------------------------------
 
-# 6. Generosity per country:
-generosity <- data %>% 
+# 4.1 Obtaining the dataframes:
+df_highest_ss <- data %>% 
+  group_by(country) %>% 
+  summarise(social_support = mean(social_support)) %>% 
+  arrange(desc(social_support)) %>% 
+  mutate(ss_rank = as.integer(rank(-social_support))) %>% 
+  slice(1:10)
+
+# Plotting the graph:
+plot_ly(df_highest_ss, x = ~social_support, y = ~reorder(country, social_support), 
+        type = 'bar', 
+        name = 'Social Support',
+        orientation = "h",
+        text = ~round(social_support, 2), 
+        textposition = 'auto',
+        marker = list(color = '#f7ca18',
+                      line = list(color = "#f4b350", width = 1))) %>%
+  layout(title = list(text = "<b>Top 10 Countries with Highest Social Support</b>",
+                      xanchor = "center", x = 0.5, y = 0.95), 
+         xaxis = list(title = list(text = "<b>Social Support</b>", 
+                                   font = t_labels), 
+                      showline = TRUE, 
+                      showticklabels = TRUE, 
+                      domain = c(0, 0.90),
+                      font = t_labels), 
+         yaxis = list(title = "", 
+                      showline = TRUE, 
+                      showticklabels = TRUE, 
+                      domain = c(0, 0.90)),
+         plot_bgcolor = "#f8f8ff")
+
+#-----------------------------------------------------------
+# 5. Countries with the highest Freedom to make life choices
+#-----------------------------------------------------------
+
+# 5.1 Obtaining the dataframes:
+df_highest_freedom <- data %>% 
+  group_by(country) %>% 
+  summarise(freedom = mean(freedom)) %>% 
+  arrange(desc(freedom)) %>% 
+  mutate(freedom_rank = as.integer(rank(-freedom))) %>% 
+  slice(1:10)
+
+# Plotting the graph:
+plot_ly(df_highest_freedom, x = ~freedom, y = ~reorder(country, freedom), 
+        type = 'bar', 
+        name = 'Freedom',
+        orientation = "h",
+        text = ~round(freedom, 2), 
+        textposition = 'auto',
+        marker = list(color = '#f62459',
+                      line = list(color = "#d1353f", width = 1))) %>%
+  layout(title = list(text = "<b>Top 10 Countries with Highest Freedom</b>",
+                      xanchor = "center", x = 0.5, y = 0.95), 
+         xaxis = list(title = list(text = "<b>Freedom</b>", 
+                                   font = t_labels), 
+                      showline = TRUE, 
+                      showticklabels = TRUE, 
+                      domain = c(0, 0.90),
+                      font = t_labels), 
+         yaxis = list(title = "", 
+                      showline = TRUE, 
+                      showticklabels = TRUE, 
+                      domain = c(0, 0.90)),
+         plot_bgcolor = "#f8f8ff")
+
+#-----------------------------------------
+# 6. Countries with the highest Generosity
+#-----------------------------------------
+
+# 6.1 Obtaining the dataframes:
+df_highest_generosity <- data %>% 
   group_by(country) %>% 
   summarise(generosity = mean(generosity)) %>% 
-  arrange(country)
+  arrange(desc(generosity)) %>% 
+  mutate(generosity_rank = as.integer(rank(-generosity))) %>% 
+  slice(1:10)
 
-generosity_graph <- generosity %>%
-  arrange(-generosity) %>% 
-  slice(1:10) %>% 
-  ggplot(generosity_graph, mapping = aes(x = reorder(x = country, +generosity), y = generosity)) + 
-  geom_col(fill = "yellow") + coord_flip() +
-  labs(title = "Top 10 Countries Generosity", 
-       x = "Country", y = "Generosity value")
+# Plotting the graph:
+plot_ly(df_highest_generosity, x = ~generosity, y = ~reorder(country, generosity), 
+        type = 'bar', 
+        name = 'Generosity',
+        orientation = "h",
+        text = ~round(generosity, 2), 
+        textposition = 'auto',
+        marker = list(color = '#9b59b6',
+                      line = list(color = "#8e44ad", width = 1))) %>%
+  layout(title = list(text = "<b>Top 10 Countries with Highest Generosity</b>",
+                      xanchor = "center", x = 0.5, y = 0.95), 
+         xaxis = list(title = list(text = "<b>Generosity</b>", 
+                                   font = t_labels), 
+                      showline = TRUE, 
+                      showticklabels = TRUE, 
+                      domain = c(0, 0.90),
+                      font = t_labels), 
+         yaxis = list(title = "", 
+                      showline = TRUE, 
+                      showticklabels = TRUE, 
+                      domain = c(0, 0.90)),
+         plot_bgcolor = "#f8f8ff")
 
-generosity_graph
-View(generosity)
+#-----------------------------------------
+# 7. Countries with the highest Corruption
+#-----------------------------------------
 
-#---------------------------------------------
-
-# 7. Perceptions of corruption per country:
-
-perception_corruption <- data %>% 
+# 7.1 Obtaining the dataframes:
+df_highest_corruption <- data %>% 
   group_by(country) %>% 
-  summarise(perception_corruption = mean(perception_corruption)) %>% 
-  arrange(country)
+  summarise(corruption = mean(corruption)) %>% 
+  arrange(desc(corruption)) %>% 
+  mutate(corruption_rank = as.integer(rank(-corruption))) %>% 
+  slice(1:10)
 
-perception_corruption_graph <- perception_corruption %>%
-  arrange(-perception_corruption) %>% 
-  slice(1:10) %>% 
-  ggplot(perception_corruption_graph, mapping = aes(x = reorder(x = country, +perception_corruption), y = perception_corruption)) + 
-  geom_col(fill = "brown") + coord_flip() +
-  labs(title = "Top 10 Countries Perceptions of corruption", 
-       x = "Country", y = "Perceptions of corruption value")
+# Plotting the graph:
+plot_ly(df_highest_corruption, x = ~corruption, y = ~reorder(country, corruption), 
+        type = 'bar', 
+        name = 'Corruption',
+        orientation = "h",
+        text = ~round(corruption, 2), 
+        textposition = 'auto',
+        marker = list(color = '#3498db',
+                      line = list(color = "#2980b9", width = 1))) %>%
+  layout(title = list(text = "<b>Top 10 Countries with Highest Corruption</b>",
+                      xanchor = "center", x = 0.5, y = 0.95), 
+         xaxis = list(title = list(text = "<b>Corruption</b>", 
+                                   font = t_labels), 
+                      showline = TRUE, 
+                      showticklabels = TRUE, 
+                      domain = c(0, 0.90),
+                      font = t_labels), 
+         yaxis = list(title = "", 
+                      showline = TRUE, 
+                      showticklabels = TRUE, 
+                      domain = c(0, 0.90)),
+         plot_bgcolor = "#f8f8ff")
 
-perception_corruption_graph
-View(perception_corruption)
+#-------------------------------------------
+# 8. Countries with the best Positive Affect
+#-------------------------------------------
 
-#---------------------------------------------
-
-# 8. Positive affect per country:
-positive_affect <- data %>% 
+# 8.1 Obtaining the dataframes:
+df_highest_positive_affect <- data %>% 
   group_by(country) %>% 
   summarise(positive_affect = mean(positive_affect)) %>% 
-  arrange(country)
+  arrange(desc(positive_affect)) %>% 
+  mutate(positive_affect_rank = as.integer(rank(-positive_affect))) %>% 
+  slice(1:10)
 
-positive_affect_graph <- positive_affect %>%
-  arrange(-positive_affect) %>% 
-  slice(1:10) %>% 
-  ggplot(positive_affect_graph, mapping = aes(x = reorder(x = country, +positive_affect), y = positive_affect)) + 
-  geom_col(fill = "pink") + coord_flip() +
-  labs(title = "Top 10 Countries Positivity", 
-       x = "Country", y = "Positive affect value")
+# Plotting the graph:
+plot_ly(df_highest_positive_affect, x = ~positive_affect, y = ~reorder(country, positive_affect), 
+        type = 'bar', 
+        name = 'Positive Affect',
+        orientation = "h",
+        text = ~round(positive_affect, 2), 
+        textposition = 'auto',
+        marker = list(color = '#2ecc71',
+                      line = list(color = "#27ae60", width = 1))) %>%
+  layout(title = list(text = "<b>Top 10 Countries with Highest Positive Affect</b>",
+                      xanchor = "center", x = 0.5, y = 0.95), 
+         xaxis = list(title = list(text = "<b>Positive Affect</b>", 
+                                   font = t_labels), 
+                      showline = TRUE, 
+                      showticklabels = TRUE, 
+                      domain = c(0, 0.90),
+                      font = t_labels), 
+         yaxis = list(title = "", 
+                      showline = TRUE, 
+                      showticklabels = TRUE, 
+                      domain = c(0, 0.90)),
+         plot_bgcolor = "#f8f8ff")
 
-positive_affect_graph
-View(positive_affect)
+#-------------------------------------------
+# 9. Countries with the Worst Negative Affect
+#-------------------------------------------
 
-#---------------------------------------------
-
-# 9. Negative affect per country:
-negative_affect <- data %>% 
+# 9.1 Obtaining the dataframes:
+df_highest_negative_affect <- data %>% 
   group_by(country) %>% 
   summarise(negative_affect = mean(negative_affect)) %>% 
-  arrange(country)
+  arrange(desc(negative_affect)) %>% 
+  mutate(negative_affect_rank = as.integer(rank(-negative_affect))) %>% 
+  slice(1:10)
 
-negative_affect_graph <- negative_affect %>%
-  arrange(-negative_affect) %>% 
-  slice(1:10) %>% 
-  ggplot(negative_affect_graph, mapping = aes(x = reorder(x = country, +negative_affect), y = negative_affect)) + 
-  geom_col(fill = "blue") + coord_flip() +
-  labs(title = "Top 10 Countries Negativity", 
-       x = "Country", y = "Negative affect value")
+# Plotting the graph:
+plot_ly(df_highest_negative_affect, x = ~negative_affect, y = ~reorder(country, negative_affect), 
+        type = 'bar', 
+        name = 'Negative Affect',
+        orientation = "h",
+        text = ~round(negative_affect, 2), 
+        textposition = 'auto',
+        marker = list(color = '#e74c3c',
+                      line = list(color = "#c0392b", width = 1))) %>%
+  layout(title = list(text = "<b>Top 10 Countries with Highest Negative Affect</b>",
+                      xanchor = "center", x = 0.5, y = 0.95), 
+         xaxis = list(title = list(text = "<b>Negative Affect</b>", 
+                                   font = t_labels), 
+                      showline = TRUE, 
+                      showticklabels = TRUE, 
+                      domain = c(0, 0.90),
+                      font = t_labels), 
+         yaxis = list(title = "", 
+                      showline = TRUE, 
+                      showticklabels = TRUE, 
+                      domain = c(0, 0.90)),
+         plot_bgcolor = "#f8f8ff")
 
-negative_affect_graph
-View(negative_affect)
 
 #------------------------------------------------------------------------------#
 ### Bivariate Analysis (between Target vs FEATURES) ###
 #------------------------------------------------------------------------------#
 
-cols <- c("log_gdp_per_capita", "social_support", "healthy_life_expectancy",
-          "freedom_life_choices", "generosity",
-          "perception_corruption", "positive_affect",
-          "negative_affect")
+#-----------------------------
+# Font settings for visuals:
+#-----------------------------
 
-for (i in cols){
-    ggplot(data, aes(x = i, y = happy_score)) +
-    geom_point(size = 2, shape = 18, color = "#0099f9") +
-    geom_smooth(method = "lm", color = "red", se = FALSE) +
-    stat_cor(p.accuracy = 0.001, r.accuracy = 0.001) +
-    labs(title = "Happy Score vs Factors",
-         subtitle = "",
-         caption = "Source: World Happiness Report 2021",
-         y = "Healthy life expectancy") +
-    theme(plot.title = element_text(color = "#0099f9", face = "bold",
-                                    size = 14, hjust = 0.5),
-          legend.position = "none")
-}
+t_title <- list(family = "sans-serif",
+                 size = 20)
+t_labels <- list(family = "sans-serif",
+                 size = 15)
+t_legend <- list(family = "sans-serif",
+                 size = 12)
+
+#-------------------------------
+# 1. GDP per capita vs Happiness
+#-------------------------------
+
+# 1.1 Getting the regression formula
+fit <- lm(happy_score ~ log_gdp_per_capita, data = data)
+
+# 1.2 Plot + Regression line 
+data %>% 
+  plot_ly(x = ~log_gdp_per_capita) %>% 
+  add_markers(y = ~happy_score, 
+              color = ~happy_score,
+              colors = c("#dedad2", "#54bebe"),
+              name = "Data",
+              text = ~paste("GDP/Capita: ", round(log_gdp_per_capita, 2),
+                            '<br>Happy Score: ', round(happy_score, 2))) %>%
+  add_lines(x = ~log_gdp_per_capita, y = ~fitted(fit), 
+            color = I("#d7658b"), 
+            name = "Reg. line",
+            text = ~paste("GDP/Capita: ", round(log_gdp_per_capita, 2),
+                          '<br>Happy Score: ', round(happy_score, 2))) %>%
+  colorbar(title = list(text = "<b>Score Lvl:</b>", 
+                        font = t_labels),
+           tickvals = c(3, 5, 7),
+           len = 0.5,
+           y = 1,
+           ypad = 20,
+           thickness = 15) %>%
+  layout(title = list(text = "<b>GDP per capita vs Happiness</b>", 
+                      xanchor = "center", font = t_title, 
+                      x = 0.5, y = 0.99),
+         legend = list(title = list(text = "<b>Legend:</b>"), 
+                       font = t_legend),
+         xaxis = list(title = list(text = "<b>GDP per Capita</b>", 
+                                   font = t_labels)),
+         yaxis = list(title = list(text = "<b>Happiness Score</b>", 
+                                   font = t_labels)), 
+         plot_bgcolor = "#f9f9f9")
+
+
+#-------------------------------
+# 2. Social support vs Happiness
+#-------------------------------
+
+# 2.1 Getting the regression formula
+fit <- lm(happy_score ~ social_support, data = data)
+
+# 2.2 Plot + Regression line
+data %>% 
+  plot_ly(x = ~social_support) %>% 
+  add_markers(y = ~happy_score, 
+              color = ~happy_score,
+              colors = c("#363445", "#ffb400"),
+              name = "Data",
+              text = ~paste("Social Support: ", round(social_support, 2),
+                            '<br>Happy Score: ', round(happy_score, 2))) %>%
+  add_lines(x = ~social_support, y = ~fitted(fit), 
+            color = I("#e14b31"), 
+            name = "Reg. line",
+            text = ~paste("Social Support: ", round(social_support, 2),
+                          '<br>Happy Score: ', round(happy_score, 2))) %>%
+  colorbar(title = list(text = "<b>Score Lvl:</b>", 
+                        font = t_labels),
+           tickvals = c(3, 5, 7),
+           len = 0.5,
+           y = 1,
+           ypad = 20,
+           thickness = 15) %>%
+  layout(title = list(text = "<b>Social Support vs Happiness</b>", 
+                      xanchor = "center", font = t_title, 
+                      x = 0.5, y = 0.99),
+         legend = list(title = list(text = "<b>Legend:</b>"), 
+                       font = t_legend),
+         xaxis = list(title = list(text = "<b>Social Support</b>", 
+                                   font = t_labels)),
+         yaxis = list(title = list(text = "<b>Happiness Score</b>", 
+                                   font = t_labels)), 
+         plot_bgcolor = "#f9f9f9")
+
+
+#-----------------------------------------
+# 3. Healthy life expectancy vs Happiness
+#-----------------------------------------
+
+# 3.1 Getting the regression formula
+fit <- lm(happy_score ~ healthy_life_expectancy, data = data)
+
+# 3.2 Plot + Regression line
+data %>% 
+  plot_ly(x = ~healthy_life_expectancy) %>% 
+  add_markers(y = ~happy_score, 
+              color = ~happy_score,
+              colors = c("#e2e2e2", "#1984c5"),
+              name = "Data",
+              text = ~paste("Healthy Life Expectancy: ", round(healthy_life_expectancy, 2),
+                            '<br>Happy Score: ', round(happy_score, 2))) %>%
+  add_lines(x = ~healthy_life_expectancy, y = ~fitted(fit), 
+            color = I("#e14b31"), 
+            name = "Reg. line",
+            text = ~paste("Healthy Life Expectancy: ", round(healthy_life_expectancy, 2),
+                          '<br>Happy Score: ', round(happy_score, 2))) %>%
+  colorbar(title = list(text = "<b>Score Lvl:</b>", 
+                        font = t_labels),
+           tickvals = c(3, 5, 7),
+           len = 0.5,
+           y = 1,
+           ypad = 20,
+           thickness = 15) %>%
+  layout(title = list(text = "<b>Healthy Life Expectancy vs Happiness</b>", 
+                      xanchor = "center", font = t_title, 
+                      x = 0.5, y = 0.99),
+         legend = list(title = list(text = "<b>Legend:</b>"), 
+                       font = t_legend),
+         xaxis = list(title = list(text = "<b>Healthy Life Expectancy</b>", 
+                                   font = t_labels)),
+         yaxis = list(title = list(text = "<b>Happiness Score</b>", 
+                                   font = t_labels)), 
+         plot_bgcolor = "#f9f9f9")
+
+
+#-----------------------------------------
+# 4. Freedom to make life choices vs Happiness
+#-----------------------------------------
+
+# 4.1 Getting the regression formula
+fit <- lm(happy_score ~ freedom_life_choices, data = data)
+
+# 4.2 Plot + Regression line
+data %>% 
+  plot_ly(x = ~freedom_life_choices) %>% 
+  add_markers(y = ~happy_score, 
+              color = ~happy_score,
+              colors = c("#dedad2", "#54bebe"),
+              name = "Data",
+              text = ~paste("Freedom to make life choices: ", round(freedom_life_choices, 2),
+                            '<br>Happy Score: ', round(happy_score, 2))) %>%
+  add_lines(x = ~freedom_life_choices, y = ~fitted(fit), 
+            color = I("#e14b31"), 
+            name = "Reg. line",
+            text = ~paste("Freedom to make life choices: ", round(freedom_life_choices, 2),
+                          '<br>Happy Score: ', round(happy_score, 2))) %>%
+  colorbar(title = list(text = "<b>Score Lvl:</b>", 
+                        font = t_labels),
+           tickvals = c(3, 5, 7),
+           len = 0.5,
+           y = 1,
+           ypad = 20,
+           thickness = 15) %>%
+  layout(title = list(text = "<b>Freedom to make life choices vs Happiness</b>", 
+                      xanchor = "center", font = t_title, 
+                      x = 0.5, y = 0.99),
+         legend = list(title = list(text = "<b>Legend:</b>"), 
+                       font = t_legend),
+         xaxis = list(title = list(text = "<b>Freedom to make life choices</b>", 
+                                   font = t_labels)),
+         yaxis = list(title = list(text = "<b>Happiness Score</b>", 
+                                   font = t_labels)), 
+         plot_bgcolor = "#f9f9f9")
+
+
+#-----------------------------------------
+# 5. Generosity vs Happiness
+#-----------------------------------------
+
+# 5.1 Getting the regression formula
+fit <- lm(happy_score ~ generosity, data = data)
+
+# 5.2 Plot + Regression line
+data %>% 
+  plot_ly(x = ~generosity) %>% 
+  add_markers(y = ~happy_score, 
+              color = ~happy_score,
+              colors = c("#a86464", "#333333"),
+              name = "Data",
+              text = ~paste("Generosity: ", round(generosity, 2),
+                            '<br>Happy Score: ', round(happy_score, 2))) %>%
+  add_lines(x = ~generosity, y = ~fitted(fit), 
+            color = I("#e14b31"), 
+            name = "Reg. line",
+            text = ~paste("Generosity: ", round(generosity, 2),
+                          '<br>Happy Score: ', round(happy_score, 2))) %>%
+  colorbar(title = list(text = "<b>Score Lvl:</b>", 
+                        font = t_labels),
+           tickvals = c(3, 5, 7),
+           len = 0.5,
+           y = 1,
+           ypad = 20,
+           thickness = 15) %>%
+  layout(title = list(text = "<b>Generosity vs Happiness</b>", 
+                      xanchor = "center", font = t_title, 
+                      x = 0.5, y = 0.99),
+         legend = list(title = list(text = "<b>Legend:</b>"), 
+                       font = t_legend),
+         xaxis = list(title = list(text = "<b>Generosity</b>", 
+                                   font = t_labels)),
+         yaxis = list(title = list(text = "<b>Happiness Score</b>", 
+                                   font = t_labels)), 
+         plot_bgcolor = "#f9f9f9")
+
+
+#-----------------------------------------
+# 6. Perception of corruption vs Happiness
+#-----------------------------------------
+
+# 6.1 Getting the regression formula
+fit <- lm(happy_score ~ perception_corruption, data = data)
+
+# 6.2 Plot + Regression line
+data %>% 
+  plot_ly(x = ~perception_corruption) %>% 
+  add_markers(y = ~happy_score, 
+              color = ~happy_score,
+              colors = c("#363445", "#ffb400"),
+              name = "Data",
+              text = ~paste("Perception of corruption: ", round(perception_corruption, 2),
+                            '<br>Happy Score: ', round(happy_score, 2))) %>%
+  add_lines(x = ~perception_corruption, y = ~fitted(fit), 
+            color = I("#e14b31"), 
+            name = "Reg. line",
+            text = ~paste("Perception of corruption: ", round(perception_corruption, 2),
+                          '<br>Happy Score: ', round(happy_score, 2))) %>%
+  colorbar(title = list(text = "<b>Score Lvl:</b>", 
+                        font = t_labels),
+           tickvals = c(3, 5, 7),
+           len = 0.5,
+           y = 1,
+           ypad = 20,
+           thickness = 15) %>%
+  layout(title = list(text = "<b>Perception of corruption vs Happiness</b>", 
+                      xanchor = "center", font = t_title, 
+                      x = 0.5, y = 0.99),
+         legend = list(title = list(text = "<b>Legend:</b>"), 
+                       font = t_legend),
+         xaxis = list(title = list(text = "<b>Perception of corruption</b>", 
+                                   font = t_labels)),
+         yaxis = list(title = list(text = "<b>Happiness Score</b>", 
+                                   font = t_labels)), 
+         plot_bgcolor = "#f9f9f9")
+
+
+#-----------------------------------------
+# 7. Positive affect vs Happiness
+#-----------------------------------------
+
+# 7.1 Getting the regression formula
+fit <- lm(happy_score ~ positive_affect, data = data)
+
+# 7.2 Plot + Regression line
+data %>% 
+  plot_ly(x = ~positive_affect) %>% 
+  add_markers(y = ~happy_score, 
+              color = ~happy_score,
+              colors = c("#00bfff", "#0000b3"),
+              name = "Data",
+              text = ~paste("Positive affect: ", round(positive_affect, 2),
+                            '<br>Happy Score: ', round(happy_score, 2))) %>%
+  add_lines(x = ~positive_affect, y = ~fitted(fit), 
+            color = I("#e14b31"), 
+            name = "Reg. line",
+            text = ~paste("Positive affect: ", round(positive_affect, 2),
+                          '<br>Happy Score: ', round(happy_score, 2))) %>%
+  colorbar(title = list(text = "<b>Score Lvl:</b>", 
+                        font = t_labels),
+           tickvals = c(3, 5, 7),
+           len = 0.5,
+           y = 1,
+           ypad = 20,
+           thickness = 15) %>%
+  layout(title = list(text = "<b>Positive affect vs Happiness</b>", 
+                      xanchor = "center", font = t_title, 
+                      x = 0.5, y = 0.99),
+         legend = list(title = list(text = "<b>Legend:</b>"), 
+                       font = t_legend),
+         xaxis = list(title = list(text = "<b>Positive affect</b>", 
+                                   font = t_labels)),
+         yaxis = list(title = list(text = "<b>Happiness Score</b>", 
+                                   font = t_labels)), 
+         plot_bgcolor = "#f9f9f9")
+
+
+#-----------------------------------------
+# 8. Negative affect vs Happiness
+#-----------------------------------------
+
+# 8.1 Getting the regression formula
+fit <- lm(happy_score ~ negative_affect, data = data)
+
+# 8.2 Plot + Regression line
+data %>% 
+  plot_ly(x = ~negative_affect) %>% 
+  add_markers(y = ~happy_score, 
+              color = ~happy_score,
+              colors = c("#d7e1ee", "#a4a2a8"),
+              name = "Data",
+              text = ~paste("Negative affect: ", round(negative_affect, 2),
+                            '<br>Happy Score: ', round(happy_score, 2))) %>%
+  add_lines(x = ~negative_affect, y = ~fitted(fit), 
+            color = I("#e14b31"), 
+            name = "Reg. line",
+            text = ~paste("Negative affect: ", round(negative_affect, 2),
+                          '<br>Happy Score: ', round(happy_score, 2))) %>%
+  colorbar(title = list(text = "<b>Score Lvl:</b>", 
+                        font = t_labels),
+           tickvals = c(3, 5, 7),
+           len = 0.5,
+           y = 1,
+           ypad = 20,
+           thickness = 15) %>%
+  layout(title = list(text = "<b>Negative affect vs Happiness</b>", 
+                      xanchor = "center", font = t_title, 
+                      x = 0.5, y = 0.99),
+         legend = list(title = list(text = "<b>Legend:</b>"), 
+                       font = t_legend),
+         xaxis = list(title = list(text = "<b>Negative affect</b>", 
+                                   font = t_labels)),
+         yaxis = list(title = list(text = "<b>Happiness Score</b>", 
+                                   font = t_labels)), 
+         plot_bgcolor = "#f9f9f9")
+
+
+#-----------------------------------------
+# Conclusions from the analyses: 
+#-----------------------------------------
+"
+Positive relationship are observed with Happiness between:
+- Log GDP per capita
+- Healthy life expectancy
+- Social support
+- Freedom to make life choices
+- Generosity (However, the relationship is not strong)
+- Positive affect
+
+However, Negative relationship was observed between:
+- Happiness & Negative Affect
+"
 
 #------------------------------------------------------------------------------#
 ### Regression Analysis ###
 #------------------------------------------------------------------------------#
+
 library(modelr)
 
 # Filtering the dataset to include only the variables that we are interested in
@@ -722,6 +1206,7 @@ fig_social_sad
 
 ## Converting Spreadsheet Files to CSV (using rio package):
 "
+library(rio) # converting xls -> csv
 # xls <- dir(pattern = 'xls')
 # created <- mapply(convert, xls, gsub('xls', 'csv', xls))
 # unlink(xls) # Delete xls files
