@@ -32,36 +32,49 @@ This analysis looked at the number of factors affecting the happiness score in t
 
 
 5. Denmark, Finland, and Switzerland emerge as the top three countries for a high quality of life based on happiness scores.
+
 ![happiness](https://github.com/yuunam97/world-happiness-EDA-ML/blob/main/images/1-happiest-countries.png?raw=true)
 
+
 6. The SADDEST countries are Central African Republic (Congo), Burundi, and Togo. 
+
 ![saddest](https://github.com/yuunam97/world-happiness-EDA-ML/blob/main/images/2-saddest-countries.png?raw=true)
 
-6. The most influential factors contributing to happiness scores are the log of GDP per capita, healthy life expectancy, and social support.
+
+7. The most influential factors contributing to happiness scores are the log of GDP per capita, healthy life expectancy, and social support.
+
 | GDP per Capita  | Social Support | Healthy Life Expectancy |
 | ------------- | ------------- | ------------- |
 | ![gdp](https://github.com/yuunam97/world-happiness-EDA-ML/blob/main/images/3-gdp-capita-vs-happiness.png?raw=true) | ![social](https://github.com/yuunam97/world-happiness-EDA-ML/blob/main/images/4-social-support-vs-happiness.png?raw=true)  | ![healthy](https://github.com/yuunam97/world-happiness-EDA-ML/blob/main/images/5-healthy-vs-happiness.png?raw=true)  |
 
 ![correlation](https://github.com/yuunam97/world-happiness-EDA-ML/blob/main/images/6-correlation-plot.png?raw=true)
 
-7. The linear regression model, though not perfect, demonstrates reliability with a 77% R-squared value, indicating that 77% of the variation in happiness scores is explained. The Mean Absolute Error (MAE) is 0.42, suggesting a reasonably accurate prediction on average.
+8. The linear regression model, though not perfect, demonstrates reliability with a 77% R-squared value, indicating that 77% of the variation in happiness scores is explained. The Mean Absolute Error (MAE) is 0.42, suggesting a reasonably accurate prediction on average.
 
-8. The model lacks consideration for factors like political stability and crime rates, indicating the need for future studies to explore a more comprehensive set of variables for a holistic understanding of happiness determinants.
+9. The model lacks consideration for factors like political stability and crime rates, indicating the need for future studies to explore a more comprehensive set of variables for a holistic understanding of happiness determinants.
 
 ### South Africa vs World in Happiness:
 Embarking on data analytics projects with the World Happiness Report dataset is a profound journey for me. It's a personal quest to understand global well-being factors. I am particularly drawn to comparing South Africa and South Korea, my home countries, using data analytics. This endeavor goes beyond academic interest; it's a heartfelt effort to uncover societal nuances and contribute meaningfully to the well-being of both nations.
 
 - Happiness:
+
 ![world-happiness](https://github.com/yuunam97/world-happiness-EDA-ML/blob/main/images/7-sa-vs-world.png?raw=true)
 
+
 - GDP-per-Capita (Economy)
+
 ![world-gdp](https://github.com/yuunam97/world-happiness-EDA-ML/blob/main/images/8-sa-vs-world-gdp.png?raw=true)
 
+
 - Social Support
+
 ![world-social](https://github.com/yuunam97/world-happiness-EDA-ML/blob/main/images/9-sa-vs-world-social.png?raw=true)
 
+
 - Healthy Life Expectancy
+
 ![world-healthy](https://github.com/yuunam97/world-happiness-EDA-ML/blob/main/images/10-sa-vs-world-health.png?raw=true)
+
 
 ### Credits
 1. [World Happiness Report](https://worldhappiness.report/data/) dataset of 2021, and 2023. 
